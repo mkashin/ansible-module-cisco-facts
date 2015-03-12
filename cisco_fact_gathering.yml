@@ -2,6 +2,8 @@
 - hosts: cisco-devices
   gather_facts: no
   remote_user: mkashin
+  vars:
+    IPhash: {'0.0.0.0':['foo_hostname','bar_interface']}
 
 
   tasks:
@@ -10,10 +12,11 @@
     register: text_inventory
 
   - name: parse show inventory
-    cisco_ip_intf_facts: text="{{ text_inventory.stdout }}" command=siib
+    cisco_ip_intf_facts: text="{{ text_inventory.stdout }}" command=siib facts="{{ IPhash }}"
     connection: local
     register: fact_inventory
 
 
 
-  - debug: msg=ansible_facts
+
+  - debug: msg="{{IPhash}}"

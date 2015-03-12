@@ -23,8 +23,9 @@ module: cisco_ip_intf_facts
 short_description: parses and injects the results of show ip interface brief command of cisco cli
 '''
 EXAMPLES = '''
-- cisco_ip_intf_facts: text={{ text_inventory }} command=siib
+- cisco_ip_intf_facts: text={{ text_inventory.stdout }} command=siib facts={{ ansible_facts }}
 '''
+import ast
 
 class SIIBparse(object):
 
@@ -32,34 +33,47 @@ class SIIBparse(object):
 		self.module = module
 
 	def parse(self):
-		result = dict(
-			ip= "172.16.0.1",
-            hostname= "cisco897",
-			text= self.module.params['text'],
-			command= self.module.params['command']
-		)
-		return 0,result
+         legacy_facts = self.module.params['facts']
+         #print legacy_facts
+         hostIPs = list()
+         hostIPsHash = dict()
+         hostname = "cisco897"
+         # go through each line of text looking for interface in 'up' state
+         for line in self.module.params['text'].split("\n"):
+             row = line.split()
+             if len(row) > 0 and row[-1] == 'up':
+                 ipAddress = row[1]
+                 intfName = row[0]
+                 legacy_facts[ipAddress] = (hostname,intfName)
+                 hostIPs.append([ipAddress,intfName])
+
+		 result = {
+         hostname: hostIPs
+         }
+
+         return 0,result, legacy_facts
 
 def main():
 	# creating module instance. accepting raw text output and abbreviation of command
     module = AnsibleModule(
         argument_spec = dict(
             text = dict(required=True, type='str'),
-            command = dict(required=True, type='str')
+            command = dict(required=True, type='str'),
+            facts = dict(required=True, type='dict')
         ),
         supports_check_mode=True,
     )
 
-    # instantiate SIIB parser
+    # instantiate command parser
     siib = SIIBparse(module)
     # parse the output of show ip interface brief command
-    rc,result = siib.parse()
+    rc,result, legacy_facts = siib.parse()
 
     # exiting module
     if rc != 0:
     	module.fail_json(msg="Failed to parse. Incorrect input.")
     else:
-    	module.exit_json(changed=False, ansible_facts=result)
+    	module.exit_json(changed=False, ansible_facts=result, IPHash=legacy_facts)
 
 # import module snippets
 from ansible.module_utils.basic import *
