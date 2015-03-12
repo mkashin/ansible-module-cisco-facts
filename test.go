@@ -10,9 +10,9 @@ import (
 
 type remote_device struct {
   IP string
-	USERNAME string
-	PASSWORD string
-	TRANSPORT string
+	Username string
+	Password string
+	Transport string
 }
 
 func printDevice(dev remote_device ) {
@@ -21,12 +21,14 @@ func printDevice(dev remote_device ) {
 }
 
 func main()   {
-  // create a default device
+  // create a device with default settings
   rdevice := remote_device{"0.0.0.0","cisco","cisco","ssh"}
-  // read ansible arguments
+  // read ansible arguments supplied as a file
   data, err:= ioutil.ReadFile(os.Args[1])
-  if err != nil { panic(err) }
-  // split arguments in a slice
+  if err != nil { 
+    panic(err) 
+  }
+  // split arguments into a slice
   args := strings.Split(string(data)," ")
   // iterate over arguments updating default device
   for _,arg := range args
@@ -35,11 +37,11 @@ func main()   {
       case "ip":
         rdevice.IP = kvp[1]
       case "username":
-        rdevice.USERNAME = kvp[1]
+        rdevice.Username = kvp[1]
       case "password":
-        rdevice.PASSWORD = kvp[1]
+        rdevice.Password = kvp[1]
       case "transport":
-        rdevice.TRANSPORT = kvp[1]
+        rdevice.Transport = kvp[1]
       }
   }
 

@@ -1,0 +1,19 @@
+---
+- hosts: cisco-devices
+  gather_facts: no
+  remote_user: mkashin
+
+
+  tasks:
+  - name: capture show inventory
+    raw: show ip interface brief | exclude unassigned
+    register: text_inventory
+
+  - name: parse show inventory
+    cisco_ip_intf_facts: text="{{ text_inventory.stdout }}" command=siib
+    connection: local
+    register: fact_inventory
+
+
+
+  - debug: msg=ansible_facts
