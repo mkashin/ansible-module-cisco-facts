@@ -19,36 +19,35 @@
 # along with this software.  If not, see <http://www.gnu.org/licenses/>.
 DOCUMENTATION = '''
 ---
-module: cisco_ip_intf_facts
+module: cisco_ip_intf_facts_combine
 short_description: parses and injects the results of show ip interface brief command of cisco cli
 '''
 EXAMPLES = '''
 - cisco_ip_intf_facts: text={{ text_inventory.stdout }} command=siib facts={{ ansible_facts }}
 '''
+import json
 
+FILENAME = "ip_intf.facts"
 
-class SIIBparse(object):
+class FactUpdater(object):
 
-	def __init__(self,module):
-		self.module = module
+	def __init__(self, hostTable, ipTable):
 
-	def parse(self):
-         hostIPs = list()
-         hostIPsHash = dict()
-         hostname = self.module.params['hostname']
-         # go through each line of text looking for interface in 'up' state
-         for line in self.module.params['text'].split("\n"):
-             row = line.split()
-             if len(row) > 0 and row[-1] == 'up':
-                 ipAddress = row[1]
-                 intfName = row[0]
-                 hostIPsHash[ipAddress] = (hostname, intfName)
-                 hostIPs.append([ipAddress, intfName])
+        self.host2IP = self.module.params['hostTable']
+        self.ip2Host = self.module.params['ipTable']
+        self.hostname = self.module.params['hostname']
+        self.fileObj = open (FILENAME, "r+") 
+        self.fileText = ''
 
-		 result = {
-         "intfList": hostIPs,
-         "IPs": hostIPsHash
-         }
+    def read(self):
+        self.fileText=self.fileObj.read().replace('\n', '')
+
+    def write(self):
+        self.fileObj.write(self.fileText)
+
+	def update(self):
+
+         self.host2IP = ''.join(self.host2IP)
 
          return 0,result
 
@@ -56,23 +55,26 @@ def main():
 	# creating module instance. accepting raw text output and abbreviation of command
     module = AnsibleModule(
         argument_spec = dict(
-            text = dict(required=True, type='str'),
-            command = dict(required=True, type='str'),
+            hostTable = dict(required=True, type='dict'),
+            ipTable = dict(required=True, type='list'),
             hostname = dict(required=True, type='str'),
         ),
         supports_check_mode=True,
     )
 
     # instantiate command parser
-    siib = SIIBparse(module)
-    # parse the output of show ip interface brief command
-    rc,result = siib.parse()
+    factUpdater = FactUpdater(module)
+    # read the file
+    try:
+        factUpdater.read()
+        # update the necessary changes
+        factUpdater.update()
+        # write the output file
+        factUpdater.write()
+    except:
+        module.fail_json(msg="Unexpected error: " + sys.exc_info()[0])
 
-    # exiting module
-    if rc != 0:
-    	module.fail_json(msg="Failed to parse. Incorrect input.")
-    else:
-    	module.exit_json(changed=False, ansible_facts=result)
+   	module.exit_json(changed=True)
 
 # import module snippets
 from ansible.module_utils.basic import *

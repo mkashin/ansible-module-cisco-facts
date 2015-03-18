@@ -12,11 +12,17 @@
     register: text_inventory
 
   - name: parse show inventory
-    cisco_ip_intf_facts: text="{{ text_inventory.stdout }}" command=siib facts="{{ IPhash }}"
+    cisco_ip_intf_facts: text="{{ text_inventory.stdout }}" command=siib hostname="{{ inventory_hostname }}"
     connection: local
-    register: fact_inventory
+
+  - debug: msg="{{hostvars['HomeRouter']['IPs']}}"
+  - debug: msg="{{hostvars['IOU']['IPs']}}"
+
+  - name: combine facts and save
+    cisco_ip_intf_facts_combine: hostTable="{{ intfList }}" ipTable= "{{ IPs }}" hostname="{{ inventory_hostname }}"
+    connection: local
 
 
 
 
-  - debug: msg="{{IPhash}}"
+
