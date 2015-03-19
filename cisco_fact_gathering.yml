@@ -19,7 +19,7 @@
   - debug: msg="{{hostvars['IOU']['IPs']}}"
 
   - name: combine facts and save
-    cisco_ip_intf_facts_combine: hostTable="{{ intfList }}" ipTable= "{{ IPs }}" hostname="{{ inventory_hostname }}"
+    cisco_ip_intf_facts_combine: hostTable="{{ intfList }}" ipTable="{{ IPs }}" hostname="{{ inventory_hostname }}"
     connection: local
 
 

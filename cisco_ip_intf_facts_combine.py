@@ -27,36 +27,45 @@ EXAMPLES = '''
 '''
 import json
 
-FILENAME = "ip_intf.facts"
+FILENAME = "ip_intf_facts.json"
+
 
 class FactUpdater(object):
 
-	def __init__(self, hostTable, ipTable):
-
-        self.host2IP = self.module.params['hostTable']
-        self.ip2Host = self.module.params['ipTable']
-        self.hostname = self.module.params['hostname']
-        self.fileObj = open (FILENAME, "r+") 
+    def __init__(self, module):
+        self.host2IP = module.params['hostTable']
+        self.ip2Host = module.params['ipTable']
+        self.hostname = module.params['hostname']
+        self.fileObj = open(FILENAME, "r+")
         self.fileText = ''
 
+
+
     def read(self):
-        self.fileText=self.fileObj.read().replace('\n', '')
+        fullFile = self.fileObj.read()
+        if len(fullFile) > 0:
+            self.fileText = json.loads(fullFile)
 
     def write(self):
-        self.fileObj.write(self.fileText)
+        self.fileObj.write(json.dumps(self.fileText, indent=4))
+        self.fileObj.close()
 
-	def update(self):
+    def update(self):
+        if len(self.fileText) > 0:
+            # update ip -> host dictionary
+            self.ip2Host = self.fileText[0].update(self.ip2Host)
+            # update host -> ip/interface list
+            self.host2IP = self.fileText[1].append(self.host2IP)
+        self.fileText = [self.ip2Host, self.host2IP]
 
-         self.host2IP = ''.join(self.host2IP)
 
-         return 0,result
 
 def main():
-	# creating module instance. accepting raw text output and abbreviation of command
+    # creating module instance. accepting raw text output and abbreviation of command
     module = AnsibleModule(
         argument_spec = dict(
-            hostTable = dict(required=True, type='dict'),
-            ipTable = dict(required=True, type='list'),
+            hostTable = dict(required=True, type='list'),
+            ipTable = dict(required=True, type='dict'),
             hostname = dict(required=True, type='str'),
         ),
         supports_check_mode=True,
@@ -71,10 +80,10 @@ def main():
         factUpdater.update()
         # write the output file
         factUpdater.write()
-    except:
-        module.fail_json(msg="Unexpected error: " + sys.exc_info()[0])
+    except IOError as e:
+        module.fail_json(msg="Unexpected error: " + str(e))
 
-   	module.exit_json(changed=True)
+    module.exit_json(changed=True)
 
 # import module snippets
 from ansible.module_utils.basic import *
