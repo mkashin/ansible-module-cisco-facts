@@ -23,7 +23,7 @@ module: cisco_ip_intf_facts_combine
 short_description: parses and injects the results of show ip interface brief command of cisco cli
 '''
 EXAMPLES = '''
-- cisco_ip_intf_facts: text={{ text_inventory.stdout }} command=siib facts={{ ansible_facts }}
+- cisco_ip_intf_facts: text={{ text_inventory.stdout }} command=siib
 '''
 import json
 
@@ -33,44 +33,46 @@ FILENAME = "ip_intf_facts.json"
 class FactUpdater(object):
 
     def __init__(self, module):
-        self.host2IP = module.params['hostTable']
-        self.ip2Host = module.params['ipTable']
+        self.ipDictHost = module.params['ipTable']
         self.hostname = module.params['hostname']
-        self.fileObj = open(FILENAME, "r+")
-        self.fileText = ''
-
-
+        self.fileJSON = []
 
     def read(self):
-        fullFile = self.fileObj.read()
-        if len(fullFile) > 0:
-            self.fileText = json.loads(fullFile)
+        try:
+            with open(FILENAME, 'r') as fileObj:
+                self.fileJSON = json.load(fileObj)
+        except ValueError:
+            # in case the file is empty create a data template
+            self.fileJSON = [{}, {}]
 
     def write(self):
-        self.fileObj.write(json.dumps(self.fileText, indent=4))
-        self.fileObj.close()
+        with open(FILENAME, 'w') as fileObj:
+            json.dump(self.fileJSON, fileObj, indent=4)
+        return { 'result': self.ipDictHost }
+
 
     def update(self):
-        if len(self.fileText) > 0:
-            # update ip -> host dictionary
-            self.ip2Host = self.fileText[0].update(self.ip2Host)
-            # update host -> ip/interface list
-            self.host2IP = self.fileText[1].append(self.host2IP)
-        self.fileText = [self.ip2Host, self.host2IP]
+        ipDict = self.fileJSON[0]
+        hostDict = self.fileJSON[1]
+        ipDictUpdate = dict()
+        hostDict.update({self.hostname: self.ipDictHost})
+        # update current ipDictHost to include hostname
+        for ip in self.ipDictHost:
+            ipDictUpdate[ip] = [self.hostname, self.ipDictHost[ip]]
+        ipDict.update(ipDictUpdate)
 
 
 
 def main():
     # creating module instance. accepting raw text output and abbreviation of command
     module = AnsibleModule(
-        argument_spec = dict(
-            hostTable = dict(required=True, type='list'),
-            ipTable = dict(required=True, type='dict'),
-            hostname = dict(required=True, type='str'),
+        argument_spec=dict(
+            ipTable=dict(required=True, type='dict'),
+            hostname=dict(required=True, type='str'),
         ),
         supports_check_mode=True,
     )
-
+    result = ''
     # instantiate command parser
     factUpdater = FactUpdater(module)
     # read the file
@@ -79,11 +81,11 @@ def main():
         # update the necessary changes
         factUpdater.update()
         # write the output file
-        factUpdater.write()
+        result = factUpdater.write()
     except IOError as e:
         module.fail_json(msg="Unexpected error: " + str(e))
 
-    module.exit_json(changed=True)
+    module.exit_json(changed=True, ansible_facts=result)
 
 # import module snippets
 from ansible.module_utils.basic import *

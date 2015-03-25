@@ -1,26 +1,12 @@
 ---
-- hosts: cisco-devices
-  gather_facts: no
-  remote_user: mkashin
-  vars:
-    IPhash: {'0.0.0.0':['foo_hostname','bar_interface']}
+- name: capture show inventory
+  raw: show ip interface brief | exclude unassigned
+  register: text_inventory
 
+- name: parse show inventory
+  cisco_ip_intf_facts: text="{{ text_inventory.stdout }}"
+  connection: local
 
-  tasks:
-  - name: capture show inventory
-    raw: show ip interface brief | exclude unassigned
-    register: text_inventory
-
-  - name: parse show inventory
-    cisco_ip_intf_facts: text="{{ text_inventory.stdout }}" command=siib hostname="{{ inventory_hostname }}"
-    connection: local
-
-  - debug: msg="{{hostvars['HomeRouter']['IPs']}}"
-  - debug: msg="{{hostvars['IOU']['IPs']}}"
-
-  - name: combine facts and save
-    cisco_ip_intf_facts_combine: hostTable="{{ intfList }}" ipTable="{{ IPs }}" hostname="{{ inventory_hostname }}"
-    connection: local
 
 
 

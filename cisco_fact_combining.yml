@@ -1,0 +1,13 @@
+---
+- name: combine facts and save
+  cisco_ip_intf_facts_combine: ipTable="{{ IPs }}" hostname="{{ inventory_hostname }}"
+  delegate_to: 127.0.0.1
+
+
+
+
+
+
+
+
+

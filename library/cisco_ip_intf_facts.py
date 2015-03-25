@@ -29,36 +29,30 @@ EXAMPLES = '''
 
 class SIIBparse(object):
 
-	def __init__(self,module):
-		self.module = module
+    def __init__(self, module):
+        self.module = module
 
-	def parse(self):
-         hostIPs = list()
-         hostIPsHash = dict()
-         hostname = self.module.params['hostname']
-         # go through each line of text looking for interface in 'up' state
-         for line in self.module.params['text'].split("\n"):
-             row = line.split()
-             if len(row) > 0 and row[-1] == 'up':
-                 ipAddress = row[1]
-                 intfName = row[0]
-                 hostIPsHash[ipAddress] = (hostname, intfName)
-                 hostIPs.append([ipAddress, intfName])
+    def parse(self):
+        ipDict = dict()
+        # go through each line of text looking for interface in 'up' state
+        for line in self.module.params['text'].split("\n"):
+            row = line.split()
+            if len(row) > 0 and row[-1] == 'up':
+                ipAddress = row[1]
+                intfName = row[0]
+                ipDict[ipAddress] = intfName
+        result = {
+            "IPs": ipDict
+        }
 
-		 result = {
-         "intfList": hostIPs,
-         "IPs": hostIPsHash
-         }
+        return 0, result
 
-         return 0,result
 
 def main():
-	# creating module instance. accepting raw text output and abbreviation of command
+    # creating module instance. accepting raw text output and abbreviation of command
     module = AnsibleModule(
-        argument_spec = dict(
-            text = dict(required=True, type='str'),
-            command = dict(required=True, type='str'),
-            hostname = dict(required=True, type='str'),
+        argument_spec=dict(
+            text=dict(required=True, type='str')
         ),
         supports_check_mode=True,
     )
@@ -66,13 +60,12 @@ def main():
     # instantiate command parser
     siib = SIIBparse(module)
     # parse the output of show ip interface brief command
-    rc,result = siib.parse()
-
+    rc, result = siib.parse()
     # exiting module
     if rc != 0:
-    	module.fail_json(msg="Failed to parse. Incorrect input.")
+        module.fail_json(msg="Failed to parse. Incorrect input.")
     else:
-    	module.exit_json(changed=False, ansible_facts=result)
+        module.exit_json(changed=False, ansible_facts=result)
 
 # import module snippets
 from ansible.module_utils.basic import *
