@@ -1,0 +1,10 @@
+---
+- hosts: cisco-devices
+  gather_facts: no
+  remote_user: mkashin
+  
+  tasks:
+    - include: ./cisco_read_facts.yml
+   # - include: ./cisco_trace_run.yml
+   # - include: ./cisco_trace_record.yml
+    - debug: msg="{{hostvars}}"

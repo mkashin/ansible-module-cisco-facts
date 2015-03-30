@@ -1,0 +1,11 @@
+---
+- name: read facts from file
+  local_action: cisco_read_facts
+
+
+
+
+
+
+
+

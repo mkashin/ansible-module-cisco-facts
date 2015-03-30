@@ -1,0 +1,13 @@
+---
+- name: read facts from file
+  local_action: cisco_read_facts
+  run_once: true
+  #when: inventory_hostname == localhost
+
+
+
+
+
+
+
+
