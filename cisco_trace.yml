@@ -1,10 +1,23 @@
 ---
-- hosts: cisco-devices
-  gather_facts: no
-  remote_user: mkashin
-  
+- name: Read Interface file
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
   tasks:
-    - include: ./cisco_read_facts.yml
-   # - include: ./cisco_trace_run.yml
-   # - include: ./cisco_trace_record.yml
-    - debug: msg="{{hostvars}}"
+    - name: read facts from file
+      local_action: cisco_read_facts
+      run_once: true
+
+- name: Run traceroute commands
+  hosts: cisco-devices
+  gather_facts: false
+  remote_user: cisco
+
+  tasks:
+    - name: task #1
+      raw: traceroute 1.1.1.1 probe 1
+#- include: ./cisco_read_facts.yml
+# - include: ./cisco_trace_run.yml
+#- include: ./cisco_trace_record.yml
+    - debug: msg="{{hostvars.localhost}}"

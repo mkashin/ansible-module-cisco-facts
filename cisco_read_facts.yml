@@ -1,8 +1,12 @@
----
-- name: read facts from file
-  local_action: cisco_read_facts
-  run_once: true
-  #when: inventory_hostname == localhost
+- name: Read Interface file
+  hosts: local
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: read facts from file
+      local_action: cisco_read_facts
+      run_once: true
 
 
 

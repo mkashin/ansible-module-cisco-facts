@@ -1,7 +1,7 @@
 ---
 - hosts: cisco-devices
   gather_facts: no
-  remote_user: mkashin
+  remote_user: cisco
   serial: 1
   tasks:
     - include: ./cisco_fact_gathering.yml
