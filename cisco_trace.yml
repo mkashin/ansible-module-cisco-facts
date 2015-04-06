@@ -3,11 +3,16 @@
   hosts: cisco-devices
   gather_facts: false
   remote_user: cisco
-  vars:
-    cisco_facts: "{{ lookup('file', 'ip_intf_facts.json') }}"
 
   vars_prompt:
-    
+    - name: scenario_file
+      prompt: "enter scenario filename"
+      default: "scenario-2.json"
+      private: no
+
+  vars:
+    cisco_facts: "{{ lookup('file', 'ip_intf_facts.json') }}"
+    scenario: "{{ lookup('file', './scenarios/' + scenario_file) }}"
 
   tasks:
     - include: ./cisco_trace_run.yml

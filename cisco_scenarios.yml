@@ -1,0 +1,8 @@
+---
+- hosts: localhost
+  gather_facts: no
+  remote_user: cisco
+  serial: 1
+  tasks:
+    - name: convert scenarios to json files
+      local_action: cisco_scenarios

@@ -1,0 +1,4 @@
+Failed scenario 1.1. Traceroute from R1 to R2 has not traversed R3
+ Actual path taken: R1 -> R2
+Failed scenario 4.5. Traceroute from R1 to R3 has not traversed R4
+ Actual path taken: R1 -> R2 -> R3

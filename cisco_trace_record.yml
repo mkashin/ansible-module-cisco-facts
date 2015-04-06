@@ -1,16 +1,21 @@
 ---
-- name: debug
+- name: debug hostvars
   debug: var=hostvars[inventory_hostname]
+- name: debug read files
+  debug: var=scenario
 
 
-#- name: parse traceroute ouput
-#  cisco_trace_parse: 
-#    dest_host="{{ item.item }}"
-#    std_out="{{ item.stdout }}"
-#  connection: local
-#  when: item.stdout is defined
-#  with_items: trace_result.results
-
+- name: compare traceroute to scenario and record 
+  cisco_trace_compare: 
+    dest_host={{item.key}}
+    src_host={{inventory_hostname}}
+    trace_path="{{hostvars[inventory_hostname]}}"
+    scenario="{{scenario}}"
+    ip_host="{{cisco_facts.0}}"
+    scenario_file="{{scenario_file}}"
+  when: item.key != inventory_hostname
+  with_dict: cisco_facts.1
+  connection: local
 
 
 
