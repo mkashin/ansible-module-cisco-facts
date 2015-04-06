@@ -1,5 +1,20 @@
 ---
-- name: read facts from file
+- name: debug
+  debug: var=hostvars[inventory_hostname]
+
+
+#- name: parse traceroute ouput
+#  cisco_trace_parse: 
+#    dest_host="{{ item.item }}"
+#    std_out="{{ item.stdout }}"
+#  connection: local
+#  when: item.stdout is defined
+#  with_items: trace_result.results
+
+
+
+
+
 
 
 

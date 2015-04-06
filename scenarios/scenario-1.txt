@@ -1,0 +1,4 @@
+From To Via
+R1 R4 R3
+R2 R3 R3
+R4 R1 R2

@@ -1,0 +1,27 @@
+---
+#- name: debug
+#  debug: var=item.stdout
+  #when: item.key == "{{inventory_hostname}}"
+#  with_items: trace_result.results
+
+
+- name: parse traceroute ouput
+  cisco_trace_parse: 
+    dest_host="{{ item.item.key }}"
+    std_out="{{ item.stdout }}"
+  connection: local
+  when: item.stdout is defined
+  with_items: trace_result.results
+
+
+
+
+
+
+
+
+
+
+
+
+

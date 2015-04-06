@@ -1,23 +1,16 @@
 ---
-- name: Read Interface file
-  hosts: localhost
-  connection: local
-  gather_facts: false
-
-  tasks:
-    - name: read facts from file
-      local_action: cisco_read_facts
-      run_once: true
-
 - name: Run traceroute commands
   hosts: cisco-devices
   gather_facts: false
   remote_user: cisco
+  vars:
+    cisco_facts: "{{ lookup('file', 'ip_intf_facts.json') }}"
+
+  vars_prompt:
+    
 
   tasks:
-    - name: task #1
-      raw: traceroute 1.1.1.1 probe 1
-#- include: ./cisco_read_facts.yml
-# - include: ./cisco_trace_run.yml
-#- include: ./cisco_trace_record.yml
-    - debug: msg="{{hostvars.localhost}}"
+    - include: ./cisco_trace_run.yml
+    - include: ./cisco_trace_parse.yml
+    - include: ./cisco_trace_record.yml
+    #- debug: msg="{{cisco_facts}}"

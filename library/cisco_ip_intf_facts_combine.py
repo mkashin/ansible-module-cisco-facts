@@ -48,14 +48,19 @@ class FactUpdater(object):
     def write(self):
         with open(FILENAME, 'w') as fileObj:
             json.dump(self.fileJSON, fileObj, indent=4)
-        return { 'result': self.ipDictHost }
+        return {'result': self.ipDictHost}
 
 
     def update(self):
+        # get pointers to file contents
         ipDict = self.fileJSON[0]
         hostDict = self.fileJSON[1]
         ipDictUpdate = dict()
-        hostDict.update({self.hostname: self.ipDictHost})
+        # update second dictionary with hostname -> list of IPs
+        # sorting was increase the likelihood of the first ip to be the loopback
+        hostIPs = self.ipDictHost.keys()
+        hostIPs.sort()
+        hostDict.update({self.hostname: hostIPs})
         # update current ipDictHost to include hostname
         for ip in self.ipDictHost:
             ipDictUpdate[ip] = [self.hostname, self.ipDictHost[ip]]

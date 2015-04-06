@@ -1,6 +1,11 @@
 ---
-- name: read facts from file
-  local_action: cisco_read_facts
+- name: run traceroute to every other host
+  raw: traceroute {{ item.value.0  }} probe 1
+  when: item.key != inventory_hostname
+  with_dict: cisco_facts.1
+  register: trace_result
+#- debug: var=trace_result.results
+
 
 
 
