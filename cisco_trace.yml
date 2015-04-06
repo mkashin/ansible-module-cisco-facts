@@ -6,7 +6,7 @@
 
   vars_prompt:
     - name: scenario_file
-      prompt: "enter scenario filename"
+      prompt: "enter scenario filename (.json)"
       default: "scenario-2.json"
       private: no
 

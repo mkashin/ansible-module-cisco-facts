@@ -1,9 +1,6 @@
 ---
-- name: debug hostvars
-  debug: var=hostvars[inventory_hostname]
-- name: debug read files
-  debug: var=scenario
-
+#- name: debug hostvars
+#  debug: var=hostvars[inventory_hostname]
 
 - name: compare traceroute to scenario and record 
   cisco_trace_compare: 

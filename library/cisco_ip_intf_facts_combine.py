@@ -90,7 +90,7 @@ def main():
     except IOError as e:
         module.fail_json(msg="Unexpected error: " + str(e))
 
-    module.exit_json(changed=True, ansible_facts=result)
+    module.exit_json(changed=False, ansible_facts=result)
 
 # import module snippets
 from ansible.module_utils.basic import *
