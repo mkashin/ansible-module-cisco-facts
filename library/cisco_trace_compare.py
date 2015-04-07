@@ -31,8 +31,8 @@ class ResultCompare(object):
 
     def __init__(self, module):
         self.dest_host = module.params['dest_host']
-        self.src_host = module.params['src_host']
-        self.trace_path = module.params['trace_path'][self.dest_host]
+        self.src_host = module.params['hostvars']['inventory_hostname']
+        self.trace_path = module.params['hostvars'][self.dest_host]
         self.ref_scenario = module.params['scenario']
         self.ip_host = module.params['ip_host']
         self.scenario_file = module.params['scenario_file']
@@ -66,8 +66,7 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
             dest_host=dict(required=True, type='str'),
-            src_host=dict(required=True, type='str'),
-            trace_path=dict(required=True, type='dict'),
+            hostvars=dict(required=True, type='dict'),
             scenario=dict(required=True, type='dict'),
             ip_host=dict(required=True, type='dict'),
             scenario_file=dict(required=True, type='str')

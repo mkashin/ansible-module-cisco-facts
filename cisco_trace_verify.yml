@@ -1,0 +1,86 @@
+---
+- name: Collect IP address information
+  hosts: cisco-devices
+  gather_facts: no
+  remote_user: cisco
+  serial: 1
+
+  tasks:
+    - name: capture show ip interface brief
+      raw: show ip interface brief | exclude unassigned
+      register: text_inventory
+
+    - name: parse show ip interface brief
+      cisco_ip_intf_facts: 
+        text="{{ text_inventory.stdout }}"
+      delegate_to: 127.0.0.1
+
+    - name: combine facts and save
+      cisco_ip_intf_facts_combine: 
+        ipTable="{{ IPs }}"
+        hostname="{{ inventory_hostname }}"
+      delegate_to: 127.0.0.1
+
+  tags: 
+    - collect
+
+- name: Convert scenario files to JSON
+  hosts: localhost
+  gather_facts: no
+  remote_user: cisco
+  serial: 1
+
+  tasks:
+    - name: convert scenarios to json files
+      local_action: cisco_scenarios
+
+  tags:
+    - convert
+
+- name: Run traceroute commands
+  hosts: cisco-devices
+  gather_facts: false
+  remote_user: cisco
+
+  vars_prompt:
+    - name: scenario_file
+      prompt: "enter scenario filename (.json)"
+      default: "scenario-1.json"
+      private: no
+
+  vars:
+    cisco_facts: "{{ lookup('file', 'ip_intf_facts.json') }}"
+    scenario: "{{ lookup('file', './scenarios/' + scenario_file) }}"
+
+  tasks:
+    - name: run traceroute to every other host
+      raw: traceroute {{ item.value.0  }} probe 1
+      when: item.key != inventory_hostname
+      with_dict: cisco_facts.1
+      register: trace_result
+
+    - name: parse traceroute ouput
+      cisco_trace_parse: 
+        dest_host="{{ item.item.key }}"
+        std_out="{{ item.stdout }}"
+      connection: local
+      when: item.stdout is defined
+      with_items: trace_result.results
+
+    #- name: debug hostvars
+    #  debug: var=hostvars[inventory_hostname]
+
+    - name: compare traceroute to scenario and record 
+      cisco_trace_compare: 
+        dest_host={{ item.key }}
+        hostvars="{{ hostvars[inventory_hostname] }}"
+        scenario="{{ scenario }}"
+        ip_host="{{ cisco_facts.0 }}"
+        scenario_file="{{ scenario_file }}"
+      when: item.key != inventory_hostname
+      with_dict: cisco_facts.1
+      connection: local
+
+  tags:
+    - run
+
