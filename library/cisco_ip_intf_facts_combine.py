@@ -57,9 +57,7 @@ class FactUpdater(object):
         hostDict = self.fileJSON[1]
         ipDictUpdate = dict()
         # update second dictionary with hostname -> list of IPs
-        # sorting was increase the likelihood of the first ip to be the loopback
         hostIPs = self.ipDictHost.keys()
-        hostIPs.sort()
         hostDict.update({self.hostname: hostIPs})
         # update current ipDictHost to include hostname
         for ip in self.ipDictHost:

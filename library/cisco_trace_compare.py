@@ -44,8 +44,12 @@ class ResultCompare(object):
 
     def compare(self):
         trace_path_new = list()
+        # Lookup hostnames of all known IP addresses
         for dev in self.trace_path:
-            trace_path_new.append(self.ip_host[dev][0])
+            if dev in self.ip_host:
+                trace_path_new.append(self.ip_host[dev][0])
+            else:
+                trace_path_new.append(dev)
         #print "from !!!" + str(self.src_host)
         #print "dest !!!" + str(self.dest_host)
         #print "ref_scenario !!!" + str(self.ref_scenario)

@@ -1,51 +1,13 @@
 ---
-- name: Collect IP address information
-  hosts: cisco-devices
-  gather_facts: no
-  remote_user: cisco
-  serial: 1
-
-  tasks:
-    - name: capture show ip interface brief
-      raw: show ip interface brief | exclude unassigned
-      register: text_inventory
-
-    - name: parse show ip interface brief
-      cisco_ip_intf_facts: 
-        text="{{ text_inventory.stdout }}"
-      delegate_to: 127.0.0.1
-
-    - name: combine facts and save
-      cisco_ip_intf_facts_combine: 
-        ipTable="{{ IPs }}"
-        hostname="{{ inventory_hostname }}"
-      delegate_to: 127.0.0.1
-
-  tags: 
-    - collect
-
-- name: Convert scenario files to JSON
-  hosts: localhost
-  gather_facts: no
-  remote_user: cisco
-  serial: 1
-
-  tasks:
-    - name: convert scenarios to json files
-      local_action: cisco_scenarios
-
-  tags:
-    - convert
-
 - name: Run traceroute commands
   hosts: cisco-devices
   gather_facts: false
-  remote_user: cisco
+  remote_user: mkashin
 
   vars_prompt:
     - name: scenario_file
       prompt: "enter scenario filename (.json)"
-      default: "scenario-1.json"
+      default: "scenario-1-baseline.json"
       private: no
 
   vars:
@@ -54,7 +16,7 @@
 
   tasks:
     - name: run traceroute to every other host
-      raw: traceroute {{ item.value.0  }} probe 1
+      raw: traceroute {{ item.value.0  }}
       when: item.key != inventory_hostname
       with_dict: cisco_facts.1
       register: trace_result

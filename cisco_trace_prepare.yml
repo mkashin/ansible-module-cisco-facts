@@ -1,0 +1,39 @@
+---
+- name: Collect IP address information
+  hosts: cisco-devices
+  gather_facts: no
+  remote_user: mkashin
+  serial: 1
+
+  tasks:
+    - name: capture show ip interface brief
+      raw: show ip interface brief | exclude unassigned
+      register: text_inventory
+
+    - name: parse show ip interface brief
+      cisco_ip_intf_facts: 
+        text="{{ text_inventory.stdout }}"
+      delegate_to: 127.0.0.1
+
+    - name: combine facts and save
+      cisco_ip_intf_facts_combine: 
+        ipTable="{{ IPs }}"
+        hostname="{{ inventory_hostname }}"
+      delegate_to: 127.0.0.1
+
+  tags: 
+    - collect
+
+- name: Convert scenario files to JSON
+  hosts: localhost
+  gather_facts: no
+  remote_user: mkashin
+  serial: 1
+
+  tasks:
+    - name: convert scenarios to json files
+      local_action: cisco_scenarios
+
+  tags:
+    - convert
+
